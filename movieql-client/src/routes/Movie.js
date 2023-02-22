@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql, useApolloClient, useQuery } from "@apollo/client";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
@@ -9,18 +9,39 @@ const GET_MOVIE = gql`
       title
       medium_cover_image
       rating
+      isLiked @client
     }
   }
 `;
 
 export default function Movie() {
   const { id } = useParams();
-  const { data, loading } = useQuery(GET_MOVIE, {
+  const {
+    data,
+    loading,
+    client: { cache },
+  } = useQuery(GET_MOVIE, {
     variables: {
       movieId: id,
     },
   });
-  console.log(data, loading);
+  // const client = useApolloClient();
+  const onClick = () => {
+    cache.writeFragment({
+      id: `Movie:${id}`,
+      fragment: gql`
+        fragment MovieFragment on Movie {
+          title
+          isLiked
+        }
+      `,
+      data: {
+        title: "Hello",
+        isLiked: !data.movie.isLiked,
+      },
+    });
+  };
+
   if (loading) {
     return <h1>Fetching movie...</h1>;
   }
@@ -31,6 +52,9 @@ export default function Movie() {
         <Subtitle>⭐️ {data?.movie?.rating}</Subtitle>
       </Column>
       <Image bg={data?.movie?.medium_cover_image} />
+      <button onClick={onClick}>
+        {data?.movie?.isLiked ? "Unlike" : "Like"}
+      </button>
     </Container>
   );
 }

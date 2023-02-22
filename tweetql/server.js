@@ -63,9 +63,10 @@ const typeDefs = gql`
     url: String!
     imdb_code: String!
     title: String!
+    medium_cover_image: String!
+    rating: String!
   }
 `;
-
 const resolvers = {
   Query: {
     allMovies() {
@@ -76,7 +77,9 @@ const resolvers = {
     movie(_, { id }) {
       return fetch(`https://yts.mx/api/v2/movie_details.json?movie_id=${id}`)
         .then((r) => r.json())
-        .then((json) => json.data.movie);
+        .then((json) => {
+          return json.data.movie;
+        });
     },
     allUsers() {
       return users;
